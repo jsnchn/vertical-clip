@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  verticlip-api:
+    # build from Dockerfile
+    build: "."
+    ports:
+      - "5000"
+    restart: "always"
+    environment:
+      - DO_BUCKET=${DO_BUCKET}
+      - DO_OBJECT_PREFIX=${DO_OBJECT_PREFIX}
+      - DO_KEY=${DO_KEY}
+      - DO_SECRET=${DO_SECRET}
+      - CDN_DOMAIN=${CDN_DOMAIN}
+    volumes:
+      - "./tmp:/tmp"
+    # Connects to api.network bridge
+    networks:
+      - "api.network"
+    depends_on:
+      - "redis"
+  redis:
+    image: "redis:alpine"
+    restart: "unless-stopped"
+    networks:
+      - "api.network"
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - verticlip-api
+    networks:
+      - "api.network"
+networks:
+  api.network:
